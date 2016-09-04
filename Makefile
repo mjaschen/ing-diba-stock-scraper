@@ -1,6 +1,8 @@
 .PHONY: install
 .PHONY: scrape
 
+SHELL=/usr/bin/env bash
+
 CASPERJS_OPTION_VERBOSE=--verbose
 CASPERJS_OPTION_LOG_LEVEL=debug
 CASPERJS_OPTION_COOKIES_FILE=cookies.txt
