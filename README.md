@@ -9,6 +9,7 @@ A script which uses CasperJS and PhantomJS to scrape the contents of a ING DiBa 
 
 ## Installation
 
+- install [PhantomJS](http://phantomjs.org/download.html)
 - `git clone https://github.com/mjaschen/ing-diba-stock-scraper.git`
 - `cd ing-diba-stock-scraper`
 - `make install`
