@@ -95,8 +95,6 @@ casper.then(function () {
             + "\n";
     }
 
-    console.log(quotes_csv);
-
     fs.write(filename, quotes_csv, 'w');
 });
 
