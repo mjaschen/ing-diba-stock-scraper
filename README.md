@@ -14,6 +14,7 @@ A script which uses CasperJS and PhantomJS to scrape the contents of a ING DiBa 
 - `cd ing-diba-stock-scraper`
 - `make install`
 - edit `config.js` (fill in `login` and `password` values)
+- verify/update file permissions of `config.js` (you may want to remove file permissions for everyone but yourself)
 
 ## Starting a scrape
 
