@@ -1,0 +1,7 @@
+var config = {};
+
+config.url      = "https://wertpapiere.ing-diba.de/DE/Showpage.aspx?pageID=71";
+config.login    = "";
+config.password = "";
+
+module.exports = config;
