@@ -1,7 +1,10 @@
 var config = {};
 
-config.url      = "https://wertpapiere.ing-diba.de/DE/Showpage.aspx?pageID=71";
-config.login    = "";
-config.password = "";
+config.login     = "";
+config.password  = "";
+
+config.url       = "https://wertpapiere.ing-diba.de/DE/Showpage.aspx?pageID=71";
+config.output    = "csv"; // supported: "csv", "prom"
+config.outfolder = "data/";
 
 module.exports = config;
