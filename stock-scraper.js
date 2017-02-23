@@ -5,8 +5,16 @@ const utils  = require('utils');
 
 var quotes      = [];
 var quotes_csv  = "";
+var quotes_prom = "";
 var now         = Math.floor(Date.now() / 1000);
-var filename    = "data/quotes-" + now.toString() + ".txt";
+
+function get_filename() {
+    var filename = config.outfolder + "quotes-" + now.toString() + ".txt";
+    if (config.output == 'prom') {
+        filename = config.outfolder + "quotes.prom";
+        }
+    return filename;
+}
 
 var casper = require('casper').create({
     clientScripts: [
@@ -84,7 +92,44 @@ casper.then(function () {
 
 casper.then(function () {
     quotes_csv += "timestamp;id;isin;name;count;quote_watch;quote_current\n";
-    for (var idx = 0; idx < quotes.length; idx ++) {
+    quotes_prom = "#HELP stock_price The stock price, either watched or current\n"
+                + "#HELP stock_count The number of stocks in the watchlist\n"
+                + "#TYPE stock_price gauge\n"
+                + "#TYPE stock_count gauge\n";
+
+    for (var idx = 0; idx < quotes.length; idx++) {
+        var currency_watch   = quotes[idx].quote_watch.replace(/[^a-z]/gi, '');
+        var currency_current = quotes[idx].quote_current.replace(/[^a-z]/gi, '');
+
+        // Prometheus Metric for the current price
+        quotes_prom += "stock_price{"
+            + 'type="current",'
+            + 'id="'       + quotes[idx].id   + '",'
+            + 'isin="'     + quotes[idx].isin + '",'
+            + 'name="'     + quotes[idx].name + '",'
+            + 'currency="' + currency_current
+            + '"} ' + quotes[idx].quote_current.replace(/[^\d,-]/g, '').replace(/[,]/g, '.')
+            + "\n";
+
+        // Prometheus Metric for the watched price
+        quotes_prom += "stock_price{"
+            + 'type="watch",'
+            + 'id="'       + quotes[idx].id   + '",'
+            + 'isin="'     + quotes[idx].isin + '",'
+            + 'name="'     + quotes[idx].name + '",'
+            + 'currency="' + currency_watch
+            + '"} ' + quotes[idx].quote_watch.replace(/[^\d,-]/g, '').replace(/[,]/g, '.')
+            + "\n";
+
+        // Prometheus Metric for the watched stock count
+        quotes_prom += "stock_count{"
+            + 'id="' + quotes[idx].id + '",'
+            + 'isin="' + quotes[idx].isin + '",'
+            + 'name="' + quotes[idx].name
+            + '"} ' + quotes[idx].count.replace(/[^\d,-]/g, '').replace(/[,]/g, '.')
+            + "\n";
+
+        // Create the CSV line
         quotes_csv += now + ";"
             + quotes[idx].id + ";"
             + quotes[idx].isin + ";"
@@ -93,9 +138,14 @@ casper.then(function () {
             + quotes[idx].quote_watch + ";"
             + quotes[idx].quote_current
             + "\n";
+
     }
 
-    fs.write(filename, quotes_csv, 'w');
+    if (config.output == 'prom') {
+        fs.write(get_filename(), quotes_prom, 'w');
+    } else {
+        fs.write(get_filename(), quotes_csv, 'w');
+    }
 });
 
 casper.run();

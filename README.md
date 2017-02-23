@@ -1,6 +1,8 @@
 # ING DiBa Stock Watchlist Scraper
 
-A script which uses CasperJS and PhantomJS to scrape the contents of a ING DiBa stock watchlist into a CSV file. 
+A script which uses CasperJS and PhantomJS to scrape the contents of a ING DiBa stock watchlist into a CSV file.
+
+Optionally, you can enable `prom` output in the config file and then it generates a metrics file for [Prometheus](http://prometheus.io).
 
 ## Prerequisites
 
@@ -31,5 +33,25 @@ The script is quite silent with default settings, but it's possible to make it m
 ```csv
 timestamp;id;isin;name;count;quote_watch;quote_current
 1472978211;24299486;NL0000235190;Airbus Group;250 St.;57,479 EUR;53,011 EUR
+```
+
+## Example of prom output
+
+```
+#HELP stock_price The stock price, either watched or current
+#HELP stock_count The number of stocks in the watchlist
+#TYPE stock_price gauge
+#TYPE stock_count gauge
+stock_price{type="current",id="23590133",isin="US88160R1014",name="Tesla",currency="EUR"} 260.82
+stock_price{type="watch",id="23590133",isin="US88160R1014",name="Tesla",currency="EUR"} 197.586
+stock_count{id="23590133",isin="US88160R1014",name="Tesla"} 1
+stock_price{type="current",id="23561025",isin="DE0005089031",name="United Internet",currency="EUR"} 39.231
+stock_price{type="watch",id="23561025",isin="DE0005089031",name="United Internet",currency="EUR"} 13.114
+stock_count{id="23561025",isin="DE0005089031",name="United Internet"} 2
+```
+
+## Example of Prometheus query to see the current value of all the stocks with a specific ISIN:
+```
+stock_count{isin="US88160R1014"} * on(id, name, isin) stock_price{type="current",isin="US88160R1014"}
 ```
 
