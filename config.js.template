@@ -3,8 +3,9 @@ var config = {};
 config.login     = "";
 config.password  = "";
 
-config.url       = "https://wertpapiere.ing-diba.de/DE/Showpage.aspx?pageID=71";
-config.output    = "csv"; // supported: "csv", "prom"
-config.outfolder = "data/";
+config.url         = "https://wertpapiere.ing-diba.de/DE/Showpage.aspx?pageID=71";
+config.output      = "csv"; // supported: "csv", "prom"
+config.outfolder   = "data/";
+config.prom_prefix = "";
 
 module.exports = config;

@@ -7,14 +7,41 @@ var quotes      = [];
 var quotes_csv  = "";
 var quotes_prom = "";
 var now         = Math.floor(Date.now() / 1000);
+var settings    = {};
+
+/**
+ * check_settings()
+ *
+ * Sets defaults for missing config keys
+ *
+ * @return void
+ */
+function check_settings(){
+    var safe_defaults = {
+        login: '',
+        password: '',
+        url: 'https://wertpapiere.ing-diba.de/DE/Showpage.aspx?pageID=71',
+        output: 'csv',
+        outfolder: 'data/',
+        prom_prefix: ''
+        };
+
+    for (var k in safe_defaults) {
+        if (safe_defaults.hasOwnProperty(k)) {
+            settings[k] = (config.hasOwnProperty(k) ? config[k] : safe_defaults[k]);
+            }
+        }
+}
 
 function get_filename() {
-    var filename = config.outfolder + "quotes-" + now.toString() + ".txt";
-    if (config.output == 'prom') {
-        filename = config.outfolder + "quotes.prom";
+    var filename = settings.outfolder + "quotes-" + now.toString() + ".txt";
+    if (settings.output == 'prom') {
+        filename = settings.outfolder + settings.prom_prefix + "quotes.prom";
         }
     return filename;
 }
+
+check_settings();
 
 var casper = require('casper').create({
     clientScripts: [
@@ -47,7 +74,7 @@ casper.on("page.error", function(msg, trace) {
     this.echo("Page Error: " + msg, "ERROR");
 });
 
-casper.start(config.url);
+casper.start(settings.url);
 
 casper.wait(500);
 
@@ -56,7 +83,7 @@ casper.then(function () {
         $("input[type=text]", "ul.MyInvestorLogin").val(login);
         $("input[type=password]", "ul.MyInvestorLogin").val(password);
         $("input[type=checkbox]", "ul.MyInvestorLogin li.shRememberMe").prop("checked", true);
-    }, config.login, config.password);
+    }, settings.login, settings.password);
 });
 
 casper.then(function () {
@@ -92,17 +119,17 @@ casper.then(function () {
 
 casper.then(function () {
     quotes_csv += "timestamp;id;isin;name;count;quote_watch;quote_current\n";
-    quotes_prom = "#HELP stock_price The stock price, either watched or current\n"
-                + "#HELP stock_count The number of stocks in the watchlist\n"
-                + "#TYPE stock_price gauge\n"
-                + "#TYPE stock_count gauge\n";
+    quotes_prom = "#HELP " + settings.prom_prefix + "stock_price The stock price, either watched or current\n"
+                + "#HELP " + settings.prom_prefix + "stock_count The number of stocks in the watchlist\n"
+                + "#TYPE " + settings.prom_prefix + "stock_price gauge\n"
+                + "#TYPE " + settings.prom_prefix + "stock_count gauge\n";
 
     for (var idx = 0; idx < quotes.length; idx++) {
         var currency_watch   = quotes[idx].quote_watch.replace(/[^a-z]/gi, '');
         var currency_current = quotes[idx].quote_current.replace(/[^a-z]/gi, '');
 
         // Prometheus Metric for the current price
-        quotes_prom += "stock_price{"
+        quotes_prom += settings.prom_prefix + "stock_price{"
             + 'type="current",'
             + 'id="'       + quotes[idx].id   + '",'
             + 'isin="'     + quotes[idx].isin + '",'
@@ -112,7 +139,7 @@ casper.then(function () {
             + "\n";
 
         // Prometheus Metric for the watched price
-        quotes_prom += "stock_price{"
+        quotes_prom += settings.prom_prefix + "stock_price{"
             + 'type="watch",'
             + 'id="'       + quotes[idx].id   + '",'
             + 'isin="'     + quotes[idx].isin + '",'
@@ -122,7 +149,7 @@ casper.then(function () {
             + "\n";
 
         // Prometheus Metric for the watched stock count
-        quotes_prom += "stock_count{"
+        quotes_prom += settings.prom_prefix + "stock_count{"
             + 'id="' + quotes[idx].id + '",'
             + 'isin="' + quotes[idx].isin + '",'
             + 'name="' + quotes[idx].name
@@ -141,7 +168,7 @@ casper.then(function () {
 
     }
 
-    if (config.output == 'prom') {
+    if (settings.output == 'prom') {
         fs.write(get_filename(), quotes_prom, 'w');
     } else {
         fs.write(get_filename(), quotes_csv, 'w');
