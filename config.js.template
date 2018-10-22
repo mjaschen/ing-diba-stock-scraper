@@ -3,9 +3,13 @@ var config = {};
 config.login     = "";
 config.password  = "";
 
+config.watchlist = "";
+
 config.url         = "https://wertpapiere.ing-diba.de/DE/Showpage.aspx?pageID=71";
-config.output      = "csv"; // supported: "csv", "prom"
+config.output      = "csv"; // supported: "csv", "prom", "json"
 config.outfolder   = "data/";
 config.prom_prefix = "";
+config.timestamp   = true;
+config.verbose     = false;
 
 module.exports = config;
